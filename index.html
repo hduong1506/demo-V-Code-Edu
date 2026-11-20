@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>V-Code Edu — Nền tảng Học lập trình Python, Scratch Live & AI Việt Nam</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="css/design-system.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+  <!-- Firebase Auth SDK cho Đăng nhập thật Google / Facebook / GitHub -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js" defer></script>
+</head>
+<body>
+
+  <!-- THANH ĐA NĂNG BÊN TRÁI -->
+  <div id="drawer-backdrop" class="drawer-backdrop" onclick="toggleLeftDrawer(false)"></div>
+  <aside id="left-drawer" class="left-drawer">
+    <div class="drawer-header">
+      <div class="brand" onclick="switchView('home')"><div class="brand-mark">V</div><span>V-Code Edu</span></div>
+      <button class="btn btn-sm" onclick="toggleLeftDrawer(false)">✕</button>
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-label">Tài khoản</div>
+      <div id="drawer-user-summary" style="padding:10px;border-radius:10px;background:var(--bg-elevated);border:1px solid var(--border-subtle);margin-bottom:10px"></div>
+      <button class="btn btn-sm btn-primary" style="width:100%" onclick="toggleLeftDrawer(false); handleTopUserClick()">⚙️ Quản lý Tài khoản / Đăng nhập</button>
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-label">Điều hướng</div>
+      <button class="drawer-item active" data-view="home" onclick="switchView('home')"><span>🏠 Trang chủ 3D</span><span>→</span></button>
+      <button class="drawer-item" data-view="learning" onclick="switchView('learning')"><span>📖 Học Python</span><span>→</span></button>
+      <button class="drawer-item" data-view="workspace" onclick="switchView('workspace')"><span>💻 IDE &amp; Scratch Live</span><span class="badge badge-easy">LIVE</span></button>
+      <button class="drawer-item" data-view="classroom" onclick="switchView('classroom')"><span>🏫 Lớp học (OLM)</span><span>→</span></button>
+      <button class="drawer-item" data-view="challenges" onclick="switchView('challenges')"><span>🎯 Thử thách Chặng</span><span>→</span></button>
+    </div>
+    <div class="drawer-section">
+      <div class="drawer-label">Cài đặt</div>
+      <button class="drawer-item" onclick="toggleLeftDrawer(false); document.getElementById('ai-config-modal').classList.add('open')"><span>⚙️ Cấu hình AI &amp; Backend</span></button>
+      <button class="drawer-item" onclick="toggleLeftDrawer(false); document.getElementById('oauth-config-modal').classList.add('open')"><span>🔐 Cấu hình Google / FB OAuth</span></button>
+    </div>
+  </aside>
+
+  <!-- TOPBAR (CÓ NÚT SÁNG/TỐI GÓC PHẢI & AVATAR TÀI KHOẢN) -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <button id="hamburger-btn" class="hamburger-btn" onclick="toggleLeftDrawer()" aria-label="Mở menu"><span></span><span></span><span></span></button>
+      <div class="brand" onclick="switchView('home')"><div class="brand-mark">V</div><span>V-Code Edu</span><span class="badge badge-easy">v6.0</span></div>
+    </div>
+
+    <nav class="nav-segmented">
+      <button class="nav-tab active" data-view="home" onclick="switchView('home')">Trang chủ</button>
+      <button class="nav-tab" data-view="learning" onclick="switchView('learning')">Học Python</button>
+      <button class="nav-tab" data-view="workspace" onclick="switchView('workspace')">IDE &amp; Scratch Live</button>
+      <button class="nav-tab" data-view="classroom" onclick="switchView('classroom')">Lớp học</button>
+      <button class="nav-tab" data-view="challenges" onclick="switchView('challenges')">Thử thách</button>
+    </nav>
+
+    <div class="top-actions">
+      <div id="network-status" class="status-pill"><span class="status-dot"></span><span>Online</span></div>
+      <span id="user-xp-badge" class="badge badge-easy mono" style="display:none">100 XP</span>
+      <button id="user-profile-btn" class="btn btn-sm btn-primary" onclick="handleTopUserClick()">🔑 Đăng nhập</button>
+      <button id="top-theme-btn" class="theme-toggle-top" onclick="toggleTheme()" title="Chuyển chế độ Sáng / Tối">☀️</button>
+    </div>
+  </header>
+
+  <!-- ==================== VIEW 1: TRANG CHỦ 3D ==================== -->
+  <main id="view-home" class="view-section active">
+    <canvas id="scroll-3d-canvas"></canvas>
+
+    <aside class="scroll-3d-hud" aria-label="Tiến trình cuộn 3D">
+      <div class="scroll-3d-track"><div id="scroll-3d-progress-fill"></div></div>
+      <button class="scroll-dot-item active" onclick="scrollToChapter(0)"><span>01. Khởi đầu</span><span class="dot"></span></button>
+      <button class="scroll-dot-item" onclick="scrollToChapter(1)"><span>02. Scratch Live</span><span class="dot"></span></button>
+      <button class="scroll-dot-item" onclick="scrollToChapter(2)"><span>03. Lớp học số</span><span class="dot"></span></button>
+      <button class="scroll-dot-item" onclick="scrollToChapter(3)"><span>04. Về chúng tôi</span><span class="dot"></span></button>
+    </aside>
+
+    <!-- CHƯƠNG 1 -->
+    <section id="home-chapter-0" class="scroll-chapter">
+      <div class="hero-copy-block">
+        <div class="eyebrow-badge"><span>●</span><span>V-Code Edu • Nền tảng Lập trình Giáo dục Việt Nam</span></div>
+        <h1 class="hero-title">Học lập trình <span class="hl">Python</span> &amp; <span class="hl">Scratch Live</span> trong không gian 3D.</h1>
+        <p class="hero-subtitle">Gõ Python đồng bộ khối Scratch 3.0 trực tiếp, tổ chức lớp học trực tuyến chuẩn OLM, chấm điểm Test Case tự động và hoạt động mượt mà ngay cả khi mất mạng.</p>
+        <div class="hero-cta-row">
+          <button class="btn btn-primary" onclick="switchView('workspace')">🚀 Mở IDE &amp; Scratch Live →</button>
+          <button class="btn" onclick="scrollToChapter(1)">↓ Cuộn khám phá 3D</button>
+        </div>
+        <div class="hero-metrics">
+          <div class="metric-item"><strong>Live Sync</strong><span>Python ↔ Scratch</span></div>
+          <div class="metric-item"><strong>OLM Class</strong><span>Lớp học dữ liệu thật</span></div>
+          <div class="metric-item"><strong>100% PWA</strong><span>Chạy Offline</span></div>
+          <div class="metric-item"><strong>5 Chặng</strong><span>Thử thách giải trí</span></div>
+        </div>
+      </div>
+
+      <div class="chapter-visual">
+        <div class="scroll-3d-stage" data-tilt-dir="right">
+          <div class="stage-window-bar"><div class="window-dots"><span></span><span></span><span></span></div><span class="mono">tong_so_chan.py — V-Code Studio</span><span class="badge badge-easy">Python 3</span></div>
+          <div class="stage-body">
+            <div class="stage-code-pane mono">
+              <div style="color:var(--text-muted)"># Tính tổng số chẵn từ 1 đến N</div>
+              <div>n = <span style="color:#10B981">int</span>(<span style="color:#10B981">input</span>())</div>
+              <div>tong = <span style="color:#F59E0B">0</span></div>
+              <div><span style="color:#F43F5E">for</span> i <span style="color:#F43F5E">in</span> <span style="color:#10B981">range</span>(1, n + 1):</div>
+              <div>&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#F43F5E">if</span> i % 2 == 0: tong += i</div>
+              <div><span style="color:#10B981">print</span>(tong)</div>
+            </div>
+            <div class="stage-side-pane">
+              <div><span class="bento-tag">AI Sư Phạm Tiếng Việt</span><p style="font-size:12.5px;color:var(--text-secondary)">Phân tích lỗi cú pháp tiếng Việt theo phương pháp gợi mở Socratic.</p></div>
+              <button class="btn btn-primary btn-sm" onclick="switchView('workspace')">Thử Gõ Code →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHƯƠNG 2 -->
+    <section id="home-chapter-1" class="scroll-chapter reverse">
+      <div class="chapter-copy">
+        <span class="bento-tag">Phân cảnh 02 • Cầu nối Tư duy Trực quan</span>
+        <h2 style="font-size:28px;margin-bottom:12px">Gõ Python tới đâu, khối Scratch lắp ghép Live tới đó</h2>
+        <p style="color:var(--text-secondary);margin-bottom:18px">Chuyển hóa trực tiếp từng dòng lệnh Python thành khối Scratch 3.0 theo thời gian thực, giúp học sinh THCS &amp; THPT nắm vững bản chất vòng lặp, rẽ nhánh và thuật toán.</p>
+      </div>
+      <div class="chapter-visual">
+        <div class="scroll-3d-stage" data-tilt-dir="left" style="padding:22px">
+          <div class="sb-block sb-hat">🚩 Khi bấm vào Chạy Chương Trình</div><br/>
+          <div class="sb-block sb-sensing">⌨️ Hỏi &amp; nhập số lưu vào <span class="sb-pill">n</span></div><br/>
+          <div class="sb-block sb-control">🔁 Lặp biến <span class="sb-pill">i</span> trong khoảng <span class="sb-pill">1, n + 1</span></div>
+          <div class="sb-indent-wrap"><div class="sb-block sb-control">🔀 Nếu <span class="sb-hex">i % 2 == 0</span> thì</div></div>
+          <div class="sb-block sb-looks">💬 Hiển thị ra màn hình <span class="sb-pill">tong</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHƯƠNG 3 (THAY CỘT BÊN PHẢI BẰNG QUY TRÌNH LỚP HỌC THIẾT THỰC) -->
+    <section id="home-chapter-2" class="scroll-chapter">
+      <div class="chapter-copy">
+        <span class="bento-tag">Phân cảnh 03 • Lớp học Số &amp; Đánh giá Khách quan</span>
+        <h2 style="font-size:28px;margin-bottom:12px">Quy trình Dạy – Học – Kiểm tra khép kín trên một nền tảng</h2>
+        <p style="color:var(--text-secondary)">Học sinh làm bài tập được giao trên không gian IDE độc lập (không gợi ý AI) để đảm bảo tính tự giác, trong khi giáo viên theo dõi tiến độ và chấm điểm tự động ngay trên trình duyệt.</p>
+      </div>
+      <div class="chapter-visual">
+        <div class="scroll-3d-stage" data-tilt-dir="right" style="padding:22px">
+          <span class="bento-tag" style="margin-bottom:12px">Kiến trúc Vận hành Lớp học Thực tế</span>
+          <div class="workflow-step-card">
+            <div class="workflow-step-num">01</div>
+            <div><strong>Giáo viên tạo lớp &amp; giao đề có Test Case</strong><div style="font-size:12px;color:var(--text-secondary)">Sinh mã ID lớp &amp; mã QR mời học sinh tham gia đúng lớp của mình.</div></div>
+          </div>
+          <div class="workflow-step-card">
+            <div class="workflow-step-num">02</div>
+            <div><strong>Học sinh tự thực hiện trên IDE Bài tập riêng</strong><div style="font-size:12px;color:var(--text-secondary)">Ẩn trợ lý AI &amp; code mẫu để rèn tư duy độc lập; đồng bộ trạng thái Chưa làm / Đang làm / Đã làm.</div></div>
+          </div>
+          <div class="workflow-step-card" style="margin-bottom:0">
+            <div class="workflow-step-num">03</div>
+            <div><strong>Chấm điểm tự động &amp; Lưu trữ Database</strong><div style="font-size:12px;color:var(--text-secondary)">Ghi nhận điểm số, lịch sử bài nộp và cho phép giáo viên xem trực tiếp từng dòng code.</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHƯƠNG 4 (XÓA LINK TRANG CON, THAY BẰNG THÔNG TIN TRANG WEB & NHÓM THỰC HIỆN) -->
+    <section id="home-chapter-3" class="scroll-chapter" style="grid-template-columns:1fr">
+      <div class="chapter-copy" style="max-width:980px;margin:0 auto">
+        <div style="text-align:center;margin-bottom:24px">
+          <span class="bento-tag">Phân cảnh 04 • Thông tin Dự án &amp; Nhóm thực hiện</span>
+          <h2 style="font-size:30px;margin-bottom:8px">V-Code Edu — Hệ sinh thái Học lập trình dành cho Học sinh Việt Nam</h2>
+          <p style="color:var(--text-secondary);max-width:720px;margin:0 auto">Sản phẩm nghiên cứu Khoa học Kỹ thuật hướng tới phổ cập tư duy lập trình Python theo Chương trình GDPT 2018, khắc phục rào cản ngôn ngữ và hạ tầng mạng cho trường học phổ thông.</p>
+        </div>
+        <div class="grid-3col" style="gap:16px">
+          <div style="padding:18px;border-radius:12px;background:var(--bg-elevated);border:1px solid var(--border-subtle)">
+            <span class="bento-tag">Đơn vị thực hiện</span>
+            <h4 style="margin-bottom:6px">Trường THCS &amp; THPT Hòa Phú</h4>
+            <p style="font-size:12.5px;color:var(--text-secondary)">Tổ Tin học — Phát triển và thử nghiệm thực tế trong giảng dạy môn Tin học phổ thông &amp; bồi dưỡng đội tuyển HSG.</p>
+          </div>
+          <div style="padding:18px;border-radius:12px;background:var(--bg-elevated);border:1px solid var(--border-subtle)">
+            <span class="bento-tag">Nhóm phát triển</span>
+            <h4 style="margin-bottom:6px">Nhóm Nghiên cứu V-Code Edu</h4>
+            <p style="font-size:12.5px;color:var(--text-secondary)">Phụ trách thiết kế kiến trúc hệ thống, động cơ đồng bộ Python ↔ Scratch Live, trợ lý AI sư phạm và hệ thống quản lý lớp học.</p>
+          </div>
+          <div style="padding:18px;border-radius:12px;background:var(--bg-elevated);border:1px solid var(--border-subtle)">
+            <span class="bento-tag">Nền tảng Công nghệ</span>
+            <h4 style="margin-bottom:6px">Local-First PWA &amp; FastAPI</h4>
+            <p style="font-size:12.5px;color:var(--text-secondary)">HTML5 / CSS3 3D / Vanilla JS Modular, FastAPI, SQLAlchemy (SQLite / PostgreSQL) và Firebase OAuth.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer-bar" style="position:relative;z-index:2">
+      <div style="max-width:1260px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+        <div><strong>V-Code Edu</strong> — Trường THCS &amp; THPT Hòa Phú • Dự án Khoa học Kỹ thuật</div>
+        <div>© 2026 V-Code Edu Team • Online &amp; Offline PWA Ready</div>
+      </div>
+    </footer>
+  </main>
+
+  <!-- ==================== VIEW 2: HỌC PYTHON ==================== -->
+  <section id="view-learning" class="view-section">
+    <div class="page-container">
+      <div class="section-header"><div><span class="bento-tag">Lộ trình GDPT 2018</span><h2>Tiến trình Học tập Lập trình Python</h2></div><span id="learning-progress-text" class="badge badge-easy"></span></div>
+      <div class="progress-track" style="height:11px;margin-bottom:28px"><div id="learning-progress-bar" class="progress-fill" style="width:25%"></div></div>
+      <div id="learning-lessons-grid" class="grid-2col"></div>
+    </div>
+  </section>
+
+  <!-- ==================== VIEW 3: IDE TỰ DO & SCRATCH LIVE ==================== -->
+  <section id="view-workspace" class="view-section">
+    <div class="workspace-shell">
+      <aside class="pane">
+        <div class="pane-header"><span>Bài học &amp; Thực hành</span><span class="badge badge-easy">Python 3</span></div>
+        <div class="pane-scroll">
+          <div style="padding:12px;background:var(--bg-elevated);border-radius:10px;border:1px solid var(--border-highlight);margin-bottom:14px">
+            <span class="bento-tag">Đang thực hành</span><h3 id="prob-title" style="font-size:14px;margin-bottom:5px"></h3><p id="prob-desc" style="font-size:12px;color:var(--text-secondary)"></p>
+          </div>
+          <div id="problem-list"></div>
+        </div>
+      </aside>
+      <section class="pane">
+        <div class="pane-header">
+          <div style="display:flex;align-items:center;gap:8px"><span class="mono" style="font-weight:700">main.py</span><button class="btn btn-sm" onclick="openShareModal()">🔗 QR</button><button class="btn btn-sm" onclick="downloadPythonFile()">⬇ .py</button></div>
+          <div style="display:flex;gap:6px"><button class="btn btn-sm" onclick="runCodeAction()">▶ Chạy Thử</button><button class="btn btn-primary btn-sm" onclick="submitAutoGradeAction()">✓ Chấm Test Case</button></div>
+        </div>
+        <div id="snippet-bar" class="snippet-bar"></div>
+        <div class="editor-wrapper"><div id="line-numbers" class="line-numbers">1</div><textarea id="code-editor" class="code-textarea" spellcheck="false" oninput="syncLiveEditorOutputs()"></textarea></div>
+        <div style="padding:9px 14px;background:var(--bg-surface);border-top:1px solid var(--border-subtle);display:flex;align-items:center;gap:10px">
+          <span class="mono" style="font-size:12px;color:var(--text-secondary)">Dữ liệu vào (stdin):</span><input id="custom-stdin" class="input-field mono" style="width:120px;padding:4px 8px" value="6" />
+        </div>
+      </section>
+      <aside class="pane">
+        <div class="pane-header">
+          <div class="subtabs">
+            <button class="subtab-btn active" data-rtab="scratch" onclick="switchRightTab('scratch')">🧩 Scratch Live</button>
+            <button class="subtab-btn" data-rtab="ai" onclick="switchRightTab('ai')">🤖 AI &amp; Console</button>
+            <button class="subtab-btn" data-rtab="flow" onclick="switchRightTab('flow')">🔀 Sơ đồ</button>
+          </div>
+        </div>
+        <div class="pane-scroll">
+          <div id="rpanel-scratch" class="right-panel active"><div id="scratch-live-stage" class="scratch-stage"></div></div>
+          <div id="rpanel-ai" class="right-panel">
+            <div id="console-output" class="console-box">Bấm "▶ Chạy Thử"...</div>
+            <div id="ai-chat-feed" class="ai-chat-feed"><div class="chat-msg ai">👋 Gia sư V-Code Edu sẵn sàng hỗ trợ!</div></div>
+            <div style="display:flex;gap:6px"><input id="ai-question-input" class="input-field" placeholder="Hỏi AI..." onkeydown="if(event.key==='Enter') sendAIChatAction()" /><button class="btn btn-sm btn-blue" onclick="sendAIChatAction()">Gửi</button></div>
+          </div>
+          <div id="rpanel-flow" class="right-panel"><div id="flowchart-box" style="background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:10px;padding:10px;text-align:center"></div></div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ==================== VIEW 4: LỚP HỌC (CHỌN VAI TRÒ 1 LẦN + DỮ LIỆU THẬT) ==================== -->
+  <section id="view-classroom" class="view-section">
+    <div class="page-container">
+      <!-- Yêu cầu đăng nhập -->
+      <div id="classroom-login-required" class="bento-card" style="display:none;text-align:center;max-width:560px;margin:40px auto">
+        <span class="bento-tag">Lớp học Trực tuyến V-Code Edu</span>
+        <h2 style="margin-bottom:10px">Vui lòng Đăng nhập để vào Lớp học</h2>
+        <p style="margin-bottom:20px">Hệ thống lưu trữ dữ liệu lớp học, bài tập và điểm số theo tài khoản thật của bạn.</p>
+        <button class="btn btn-primary" onclick="openAuthModal('login')">🔑 Đăng nhập / Đăng ký ngay</button>
+      </div>
+
+      <!-- Chọn vai trò 1 LẦN DUY NHẤT -->
+      <div id="classroom-role-once-picker" class="bento-card" style="display:none;max-width:760px;margin:20px auto;text-align:center">
+        <span class="bento-tag">Thiết lập tài khoản lần đầu</span>
+        <h2 style="margin-bottom:8px">Chọn vai trò của bạn trong Lớp học</h2>
+        <p style="color:var(--accent-amber);font-size:13px;margin-bottom:22px">⚠️ Lưu ý: Vai trò chỉ được chọn <strong>1 lần duy nhất</strong> và sẽ khóa cố định cho tài khoản này.</p>
+        <div class="grid-2col" style="text-align:left">
+          <div class="bento-card" style="border-color:var(--border-highlight)">
+            <div style="font-size:30px;margin-bottom:8px">👨‍🏫</div>
+            <h3>Tôi là Giáo viên</h3>
+            <p style="margin-bottom:16px">Tạo lớp học, chia sẻ mã ID/QR, giao bài tập tự chấm và theo dõi tiến độ học sinh trực tiếp.</p>
+            <button class="btn btn-primary" style="width:100%" onclick="lockRoleOnceAction('teacher')">Đăng ký vai trò Giáo viên</button>
+          </div>
+          <div class="bento-card" style="border-color:var(--accent-blue)">
+            <div style="font-size:30px;margin-bottom:8px">👨‍🎓</div>
+            <h3>Tôi là Học sinh</h3>
+            <p style="margin-bottom:16px">Nhập ID mã lớp của thầy/cô để tham gia lớp, tự làm bài tập được giao và xem điểm ngay.</p>
+            <button class="btn btn-blue" style="width:100%" onclick="lockRoleOnceAction('student')">Đăng ký vai trò Học sinh</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CỔNG GIÁO VIÊN -->
+      <div id="portal-teacher" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:18px">
+          <div><span class="bento-tag" style="margin-bottom:2px">Cổng Giáo viên</span><h2>Quản lý Lớp học &amp; Giám sát Học sinh Thật</h2></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-primary btn-sm" onclick="document.getElementById('create-class-modal').classList.add('open')">+ Tạo lớp học mới</button>
+            <button class="btn btn-blue btn-sm" onclick="openCreateAssignmentModal()">📝 Giao bài tập</button>
+          </div>
+        </div>
+        <div id="teacher-classes-grid" class="grid-3col" style="margin-bottom:24px"></div>
+        <div id="teacher-active-class-panel" class="bento-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+            <div><span class="bento-tag" style="margin-bottom:2px">Lớp đang mở</span><h3 id="teacher-selected-class-title"></h3></div>
+            <div style="display:flex;align-items:center;gap:8px"><span id="teacher-selected-class-code" class="olm-code-chip"></span><button class="btn btn-sm" onclick="copyActiveClassCode()">📋 Copy Mã</button><button class="btn btn-sm btn-primary" onclick="shareActiveClassQR()">📱 QR Lớp</button></div>
+          </div>
+          <div class="olm-subnav">
+            <button class="subtab-btn active" data-tpanel="realtime" onclick="switchTeacherSubpanel('realtime')">📡 Danh sách Học sinh &amp; Trạng thái Real-time</button>
+            <button class="subtab-btn" data-tpanel="assignments" onclick="switchTeacherSubpanel('assignments')">📝 Bài tập đã giao &amp; Bảng điểm</button>
+          </div>
+          <div id="tpanel-realtime" class="tpanel-box">
+            <div style="overflow-x:auto"><table class="data-table"><thead><tr><th>Học sinh</th><th>Bài đang làm</th><th>Trạng thái</th><th>Tiến độ</th><th>Bài làm trực tiếp</th></tr></thead><tbody id="realtime-monitor-body"></tbody></table></div>
+          </div>
+          <div id="tpanel-assignments" class="tpanel-box" style="display:none">
+            <div id="teacher-assignments-list" style="margin-bottom:18px"></div>
+            <table class="data-table"><thead><tr><th>Học sinh</th><th>Mã bài</th><th>Test đạt</th><th>Điểm</th><th>Thời gian nộp</th></tr></thead><tbody id="teacher-submissions-body"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- CỔNG HỌC SINH -->
+      <div id="portal-student" style="display:none">
+        <div class="olm-join-bar">
+          <div style="flex:1;min-width:240px">
+            <div style="font-weight:700;font-size:15px">🎓 Tham gia lớp học bằng ID Mã lớp</div>
+            <div style="font-size:12px;color:var(--text-secondary)">Nhập mã lớp thầy/cô gửi (VD: <code>TIN10HP</code>) để vào lớp và làm bài tập.</div>
+          </div>
+          <div style="display:flex;gap:8px"><input id="student-join-code-input" class="input-field mono" style="width:190px;text-transform:uppercase;font-weight:700" placeholder="ID mã lớp..." /><button class="btn btn-primary" onclick="joinClassByCodeAction()">+ Vào lớp</button></div>
+        </div>
+        <div class="grid-2col" style="grid-template-columns:340px 1fr;align-items:start">
+          <div><h3 style="font-size:16px;margin-bottom:12px">🏫 Lớp học của em</h3><div id="student-joined-classes-list"></div></div>
+          <div class="bento-card">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+              <h3 id="student-selected-class-title">Chọn một lớp học để xem bài tập</h3>
+              <span id="student-selected-class-code" class="olm-code-chip" style="display:none"></span>
+            </div>
+            <div id="student-assignments-list"><p style="color:var(--text-secondary)">Nhập mã lớp ở phía trên để bắt đầu!</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== VIEW 5: TRANG IDE BÀI TẬP RIÊNG (HỌC SINH TỰ LÀM, TẮT AI/SCRATCH) ==================== -->
+  <section id="view-assignment-ide" class="view-section">
+    <div class="exam-ide-shell">
+      <aside class="pane">
+        <div class="pane-header"><button class="btn btn-sm" onclick="switchView('classroom')">← Quay lại Lớp</button><span id="exam-class-badge" class="badge badge-blue"></span></div>
+        <div class="pane-scroll">
+          <span class="bento-tag">Chế độ Tự Thực Hiện (Không AI • Không Code mẫu)</span>
+          <h3 id="exam-title" style="font-size:16px;margin-bottom:10px"></h3>
+          <p id="exam-desc" style="font-size:13.5px;color:var(--text-secondary);line-height:1.7"></p>
+          <div style="margin-top:18px;padding:12px;border-radius:10px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.35);font-size:12px;color:var(--accent-amber)">
+            🔒 Trợ lý AI, Scratch Live và thanh gợi ý cú pháp đã được tạm khóa để em tự rèn luyện tư duy lập trình.
+          </div>
+        </div>
+      </aside>
+      <section class="pane">
+        <div class="pane-header">
+          <span class="mono" style="font-weight:700">bai_lam_cua_em.py</span>
+          <div style="display:flex;gap:8px"><button class="btn btn-sm" onclick="runExamCodeAction()">▶ Chạy Thử</button><button class="btn btn-primary btn-sm" onclick="submitExamCodeAction()">✓ Nộp Bài Chấm Điểm</button></div>
+        </div>
+        <div class="editor-wrapper"><div id="exam-line-numbers" class="line-numbers">1</div><textarea id="exam-editor" class="code-textarea" spellcheck="false" oninput="syncExamEditor()"></textarea></div>
+        <div style="padding:9px 14px;background:var(--bg-surface);border-top:1px solid var(--border-subtle);display:flex;align-items:center;gap:10px">
+          <span class="mono" style="font-size:12px">Dữ liệu thử (stdin):</span><input id="exam-stdin" class="input-field mono" style="width:130px;padding:4px 8px" value="6" />
+        </div>
+      </section>
+      <aside class="pane">
+        <div class="pane-header"><span>Kết quả Chạy &amp; Chấm điểm</span></div>
+        <div class="pane-scroll"><div id="exam-console" class="console-box" style="min-height:260px">Bấm "▶ Chạy Thử" hoặc "✓ Nộp Bài Chấm Điểm"...</div></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ==================== VIEW 6: THỬ THÁCH CHẶNG GIẢI TRÍ (THAY ĐẤU TRƯỜNG) ==================== -->
+  <section id="view-challenges" class="view-section">
+    <div class="page-container">
+      <div class="section-header">
+        <div><span class="bento-tag">Giải trí &amp; Rèn luyện Tư duy</span><h2>Bản đồ Thử thách Lập trình Python theo Chặng</h2></div>
+        <span id="challenge-progress-text" class="badge badge-easy"></span>
+      </div>
+      <div class="progress-track" style="height:11px;margin-bottom:28px"><div id="challenge-progress-bar" class="progress-fill" style="width:0%"></div></div>
+      <div id="challenges-stages-grid" class="grid-3col"></div>
+    </div>
+  </section>
+
+  <!-- ==================== VIEW 7: TRANG QUẢN LÝ TÀI KHOẢN AN TOÀN ==================== -->
+  <section id="view-account" class="view-section">
+    <div class="page-container" style="max-width:920px">
+      <div class="section-header">
+        <div><span class="bento-tag">Bảo mật &amp; Cá nhân hóa</span><h2>Quản lý Tài khoản V-Code Edu</h2></div>
+        <button class="btn btn-sm" style="border-color:var(--accent-rose);color:var(--accent-rose)" onclick="logoutAction()">🚪 Đăng xuất</button>
+      </div>
+      <div class="grid-2col">
+        <div class="bento-card">
+          <h3 style="margin-bottom:14px">Thông tin cá nhân &amp; Ảnh đại diện</h3>
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:18px">
+            <div id="acc-avatar-preview"></div>
+            <div>
+              <div style="margin-bottom:6px"><span id="acc-role-badge" class="badge badge-easy"></span></div>
+              <label class="btn btn-sm" style="cursor:pointer">📷 Đổi ảnh đại diện<input type="file" accept="image/*" style="display:none" onchange="handleAvatarFileUpload(event)" /></label>
+            </div>
+          </div>
+          <form onsubmit="saveAccountProfileAction(event)">
+            <div class="auth-field"><label>Họ và tên</label><input id="acc-fullname" class="input-field" required /></div>
+            <div class="auth-field"><label>Email (Không thể thay đổi)</label><input id="acc-email" class="input-field" readonly style="opacity:0.7" /></div>
+            <div class="auth-field"><label>Trường học</label><input id="acc-school" class="input-field" /></div>
+            <div class="auth-field"><label>Lớp / Đơn vị</label><input id="acc-class" class="input-field" /></div>
+            <button type="submit" class="btn btn-primary" style="width:100%">💾 Lưu thay đổi hồ sơ</button>
+          </form>
+        </div>
+
+        <div class="bento-card">
+          <h3 style="margin-bottom:14px">🔐 Đổi mật khẩu &amp; An toàn tài khoản</h3>
+          <form onsubmit="handleChangePasswordSubmit(event)">
+            <div class="auth-field"><label>Mật khẩu hiện tại</label><input id="acc-old-pass" type="password" class="input-field" required placeholder="Nhập mật khẩu cũ..." /></div>
+            <div class="auth-field"><label>Mật khẩu mới (tối thiểu 6 ký tự)</label><input id="acc-new-pass" type="password" class="input-field" required minlength="6" placeholder="Nhập mật khẩu mới..." /></div>
+            <div class="auth-field"><label>Xác nhận mật khẩu mới</label><input id="acc-confirm-pass" type="password" class="input-field" required minlength="6" placeholder="Nhập lại mật khẩu mới..." /></div>
+            <button type="submit" class="btn btn-blue" style="width:100%">🔑 Cập nhật Mật khẩu</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== MODALS ==================== -->
+  <div id="auth-modal" class="modal-overlay">
+    <div class="modal-box auth-modal-pro">
+      <button class="modal-close" onclick="closeModal('auth-modal')">✕</button>
+      <div class="auth-header-brand"><div class="brand-mark">V</div><h2 id="auth-heading">Đăng nhập V-Code Edu</h2><p id="auth-subheading"></p></div>
+      <div class="social-auth-grid">
+        <button type="button" class="social-btn" onclick="handleRealSocialLogin('google')"><span>Google</span></button>
+        <button type="button" class="social-btn" onclick="handleRealSocialLogin('facebook')"><span>Facebook</span></button>
+        <button type="button" class="social-btn" onclick="handleRealSocialLogin('github')"><span>GitHub</span></button>
+      </div>
+      <div class="auth-divider">hoặc tiếp tục bằng Email</div>
+      <form id="auth-login-form" onsubmit="handleLoginSubmit(event)">
+        <div class="auth-field"><label>Email</label><input id="login-identifier" class="input-field" required placeholder="nhapemail@gmail.com" /></div>
+        <div class="auth-field"><label>Mật khẩu</label><div class="password-wrap"><input id="login-password" type="password" class="input-field" required /><button type="button" class="password-toggle" onclick="togglePassVis('login-password')">👁</button></div></div>
+        <button type="submit" class="btn btn-primary" style="width:100%;padding:11px">Đăng nhập ngay</button>
+        <div class="auth-switch-footer">Chưa có tài khoản? <button type="button" onclick="switchAuthTab('register')">Đăng ký tài khoản →</button></div>
+      </form>
+      <form id="auth-register-form" style="display:none" onsubmit="handleRegisterSubmit(event)">
+        <div class="auth-field"><label>Họ và tên</label><input id="reg-fullname" class="input-field" required /></div>
+        <div class="auth-field"><label>Email</label><input id="reg-email" type="email" class="input-field" required /></div>
+        <div class="auth-field"><label>Mật khẩu</label><div class="password-wrap"><input id="reg-password" type="password" class="input-field" required minlength="6" /><button type="button" class="password-toggle" onclick="togglePassVis('reg-password')">👁</button></div></div>
+        <button type="submit" class="btn btn-primary" style="width:100%;padding:11px">Tạo tài khoản miễn phí</button>
+        <div class="auth-switch-footer">Đã có tài khoản? <button type="button" onclick="switchAuthTab('login')">Quay lại Đăng nhập</button></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL CẤU HÌNH FIREBASE OAUTH THẬT -->
+  <div id="oauth-config-modal" class="modal-overlay">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModal('oauth-config-modal')">✕</button>
+      <span class="bento-tag">Kích hoạt Đăng nhập thật Google / Facebook / GitHub</span>
+      <h3 style="margin-bottom:8px">Kết nối Firebase Authentication</h3>
+      <p style="font-size:12.5px;color:var(--text-secondary);margin-bottom:12px">Dán thông số từ Firebase Console (Project Settings → Web App) để bật cửa sổ đăng nhập Google/Facebook/GitHub chính thức:</p>
+      <div class="auth-field"><label>Firebase apiKey</label><input id="fb-api-key" class="input-field mono" placeholder="AIzaSy..." /></div>
+      <div class="auth-field"><label>Firebase authDomain</label><input id="fb-auth-domain" class="input-field mono" placeholder="vcode-edu.firebaseapp.com" /></div>
+      <div class="auth-field"><label>Firebase projectId</label><input id="fb-project-id" class="input-field mono" placeholder="vcode-edu" /></div>
+      <button class="btn btn-primary" style="width:100%" onclick="saveOAuthConfig()">Lưu &amp; Kích hoạt OAuth thật</button>
+    </div>
+  </div>
+
+  <div id="create-class-modal" class="modal-overlay"><div class="modal-box"><button class="modal-close" onclick="closeModal('create-class-modal')">✕</button><h3>Tạo Lớp học Mới</h3><form onsubmit="handleCreateClassSubmit(event)" style="margin-top:12px"><div class="auth-field"><label>Tên lớp *</label><input id="new-class-name" class="input-field" required /></div><div class="grid-2col" style="gap:10px;margin-bottom:10px"><div><label style="font-size:12px">Môn/Khối</label><input id="new-class-subject" class="input-field" value="Tin học THPT • Python" /></div><div><label style="font-size:12px">ID Mã lớp (tự tạo nếu trống)</label><input id="new-class-code" class="input-field mono" /></div></div><div class="auth-field"><label>Mô tả</label><input id="new-class-desc" class="input-field" /></div><button type="submit" class="btn btn-primary" style="width:100%">+ Tạo lớp ngay</button></form></div></div>
+  <div id="create-assignment-modal" class="modal-overlay"><div class="modal-box" style="max-width:520px"><button class="modal-close" onclick="closeModal('create-assignment-modal')">✕</button><h3>Giao Bài Tập Lớp <span id="assign-target-class" style="color:var(--accent-emerald)"></span></h3><form onsubmit="handleCreateAssignmentSubmit(event)" style="margin-top:12px"><div class="auth-field"><label>Tên bài *</label><input id="assign-title" class="input-field" required /></div><div class="auth-field"><label>Đề bài *</label><input id="assign-desc" class="input-field" required /></div><div class="grid-2col" style="gap:10px;margin-bottom:10px"><div><label style="font-size:12px">Mức độ</label><select id="assign-diff" class="select-field"><option>Cơ bản</option><option>Trung bình</option><option>Nâng cao</option></select></div><div><label style="font-size:12px">Hạn nộp</label><input id="assign-due" class="input-field" value="Cuối tuần" /></div></div><div class="grid-2col" style="gap:10px;margin-bottom:10px"><div><label style="font-size:12px">Test Input *</label><input id="assign-in" class="input-field mono" required value="6" /></div><div><label style="font-size:12px">Expected Output *</label><input id="assign-out" class="input-field mono" required value="12" /></div></div><div class="auth-field"><label>Khung code ban đầu</label><textarea id="assign-starter" class="input-field mono" rows="3"># Học sinh tự viết mã nguồn bên dưới&#10;</textarea></div><button type="submit" class="btn btn-primary" style="width:100%">✓ Giao bài ngay</button></form></div></div>
+  <div id="share-modal" class="modal-overlay"><div class="modal-box" style="text-align:center"><button class="modal-close" onclick="closeModal('share-modal')">✕</button><h3>Chia sẻ Link &amp; Mã QR</h3><div id="qr-code-box" style="background:#FFF;padding:14px;border-radius:12px;display:inline-block;margin:12px 0"></div><div style="display:flex;gap:8px"><input id="share-link-input" class="input-field mono" readonly /><button class="btn btn-primary btn-sm" onclick="copyShareLink()">Copy</button></div></div></div>
+  <div id="peek-modal" class="modal-overlay"><div class="modal-box"><button class="modal-close" onclick="closeModal('peek-modal')">✕</button><h3 id="peek-student-name"></h3><p id="peek-student-problem" style="font-size:12px;color:var(--text-secondary);margin-bottom:8px"></p><pre id="peek-code-preview" class="console-box" style="max-height:220px"></pre><div style="display:flex;gap:8px"><input id="teacher-hint-input" class="input-field" placeholder="Gửi nhận xét trực tiếp..." /><button class="btn btn-primary btn-sm" onclick="sendTeacherHintAction()">Gửi</button></div></div></div>
+  <div id="ai-config-modal" class="modal-overlay"><div class="modal-box"><button class="modal-close" onclick="closeModal('ai-config-modal')">✕</button><span class="bento-tag">Hỗ trợ OpenAI (ChatGPT) &amp; Google Gemini</span><h3 style="margin-bottom:10px">Cấu hình AI &amp; Backend</h3><div class="auth-field"><label>Backend URL (FastAPI)</label><input id="cfg-backend-url" class="input-field mono" value="http://localhost:8000" /></div><div class="auth-field"><label>OpenAI API Key (ChatGPT — bắt đầu bằng sk-...)</label><input id="cfg-openai-key" type="password" class="input-field mono" placeholder="sk-proj-..." /></div><div class="auth-field"><label>Google Gemini API Key (Miễn phí — bắt đầu bằng AIza...)</label><input id="cfg-gemini-key" type="password" class="input-field mono" placeholder="AIzaSy..." /></div><div style="font-size:12px;color:var(--text-secondary);background:var(--bg-elevated);padding:10px 12px;border-radius:9px;margin-bottom:12px;line-height:1.6"><strong>📖 Hướng dẫn lấy API Key trong 30 giây:</strong><br/>• <b>Google Gemini (Miễn phí):</b> Truy cập <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent-emerald)">aistudio.google.com/apikey</a> → Bấm <i>Create API key</i> → Copy dán vào ô trên.<br/>• <b>OpenAI (ChatGPT):</b> Truy cập <a href="https://platform.openai.com/api-keys" target="_blank" style="color:var(--accent-blue)">platform.openai.com/api-keys</a> → Bấm <i>Create new secret key</i> → Copy dán vào ô OpenAI.</div><button class="btn btn-primary" style="width:100%" onclick="saveAIConfig()">💾 Lưu Cấu Hình AI</button></div></div>
+
+  <div id="toast-banner" class="toast-banner"></div>
+
+  <script src="js/lessons-data.js"></script>
+  <script src="js/offline-db.js"></script>
+  <script src="js/firebase-auth.js"></script>
+  <script src="js/three-hero.js"></script>
+  <script src="js/scratch-bridge.js"></script>
+  <script src="js/ide-engine.js"></script>
+  <script src="js/ai-tutor.js"></script>
+  <script src="js/realtime-monitor.js"></script>
+  <script src="js/app.js"></script>
+  <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+{
+  "name": "V-Code Edu — Nền tảng Học lập trình Việt Nam",
+  "short_name": "V-Code Edu",
+  "description": "Học tập, giảng dạy, lập trình Python & Scratch Live tích hợp AI Tiếng Việt (Online & Offline PWA)",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#06080D",
+  "theme_color": "#10B981",
+  "icons": []
+}
